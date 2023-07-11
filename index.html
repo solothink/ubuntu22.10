@@ -1,0 +1,1056 @@
+
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="author" content="Canonical" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#E95420" />
+    <link rel="search"
+    type="application/opensearchdescription+xml"
+    href="/ubuntu-manpage-search.xml"
+    title="Ubuntu Manpage Search" />
+    <title>Ubuntu Manpage:
+
+       /etc/network/interfaces - interface configuration database
+    </title>
+    <link rel="stylesheet" href="https://assets.ubuntu.com/v1/vanilla-framework-version-1.8.1.min.css" />
+    <link rel="stylesheet" href="/assets/light/css/styles.css"/>
+    <link rel="icon" type="image/png" href="https://assets.ubuntu.com/v1/cb22ba5d-favicon-16x16.png" sizes="16x16" />
+    <link rel="icon" type="image/png" href="https://assets.ubuntu.com/v1/49a1a858-favicon-32x32.png" sizes="32x32" />
+    <link rel="apple-touch-icon" sizes="144x144" href="https://assets.ubuntu.com/v1/3361409d-apple-touch-icon-144x144-precomposed.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="https://assets.ubuntu.com/v1/5fe4d3c8-apple-touch-icon-114x114-precomposed.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="https://assets.ubuntu.com/v1/09460d9a-apple-touch-icon-72x72-precomposed.png" />
+    <link rel="apple-touch-icon" href="https://assets.ubuntu.com/v1/cc66da65-apple-touch-icon.png" />
+  </head>
+  <body>
+    <header id="navigation" class="p-navigation">
+      <div class="row">
+        <div class="p-navigation__banner">
+          <div class="p-navigation__logo">
+            <a class="p-navigation__link" href="/">
+              <img class="p-navigation__image" src="https://assets.ubuntu.com/v1/b93fecb3-ubuntu-manuals-lockup.svg" alt="">
+            </a>
+          </div>
+          <a href="#navigation" class="p-navigation__toggle--open" title="menu">Menu</a>
+          <a href="#navigation-closed" class="p-navigation__toggle--close" title="close menu">Close menu</a>
+        </div>
+        <nav class="p-navigation__nav" role="menubar">
+          <form class="p-search-box" method="get" action="/cgi-bin/search.py" id="cse-search-box">
+            <input class="p-search-box__input" name="q" placeholder="Search" required="" type="search">
+            <button type="reset" class="p-search-box__reset" alt="reset"><i class="p-icon--close"></i></button>
+            <button type="submit" class="p-search-box__button" alt="search"><i class="p-icon--search"></i></button>
+            <input type="hidden" name="cx" value="003883529982892832976:5zl6o8w6f0s" />
+            <input type="hidden" name="cof" value="FORID:9" />
+            <input type="hidden" name="ie" value="UTF-8" />
+            <script type="text/javascript" src="https://www.google.com/coop/cse/brand?form=cse-search-box&lang=en"></script>
+          </form>
+          <span class="u-off-screen">
+            <a href="#main-content">Jump to main content</a>
+          </span>
+          <ul class="p-navigation__links" role="menu" id="navigation-container"></ul>
+        </nav>
+      </div>
+    </header>
+    <div id="main-content">
+      <section class="p-strip is-bordered">
+        <div class="row">
+          <div class="col-3 u-hide--small u-hide" id="toc">
+          </div>
+          <div id="tableWrapper">
+            <p id="distroAndSection"></p>
+
+Provided by: <a href='https://launchpad.net/ubuntu/jammy/+package/ifupdown-ng'>ifupdown-ng_0.11.4~rc1-1build1_amd64</a> <a href='https://bugs.launchpad.net/ubuntu/+source/ifupdown-ng/+filebug-advanced' title='Report a bug in the content of this documentation'><img src='/img/bug.png' alt='bug' border=0></a><br><br><pre>
+</pre><h4><b>NAME</b></h4><pre>
+    1a.
+
+    %{
+    #include<stdio.h>
+    int v=0,op=0,id=0,flag=0;
+    %}
+    
+    %%
+    [a-zA-Z]+[0-9a-zA-Z]*  {id++;}
+    [0-9]+  {id++;}
+    [\+\-\*/\=]  {op++;}
+    "("  {v++;}
+    ")"  {v--;}
+    ";" {flag=1;}
+    .|\n {return 0;}
+    %%
+    
+    int main()
+    {
+    printf("enter the expression:");
+    yylex();
+    if((op+1)==id && v==0  && flag==0)
+    {
+    printf("\nexpression is valid\n");
+    printf("no of identifier=%d\n no of operators=%d\n",id,op);
+    }
+    else
+    printf("\nexpression is invalid\n");
+    return 0;
+    }
+    int yywrap()
+    {
+    return 1;
+    }
+    
+    
+    1b.
+    lex part
+    
+    %option noyywrap
+    %{
+    #include "y.tab.h"
+    extern int yylval;
+    %}
+    
+    %%
+    [0-9]+    {yylval=atoi(yytext);return num;}
+    [\+\-\*\/]  {return yytext[0];}
+    [)]         {return yytext[0];}
+    [(]         {return yytext[0];}
+    .           {;}
+    \n          {return 0;}
+    %%
+    
+    yacc part
+    %{
+    #include<stdio.h>
+    #include<stdlib.h>
+    int yyerror();
+    int yylex();
+    %}
+    
+    %token num
+    %left '+''-'
+    %left'*''/'
+    
+    %%
+    input:exp {printf("%d\n",$$);exit(0);}
+    exp:  exp'+'exp {$$=$1+$3;}
+         |exp'-'exp {$$=$1-$3;}
+         |exp'*'exp {$$=$1*$3;}
+         |exp'/'exp {if($3==0){printf("divide by zero.invalid expression.\n");exit(0);}
+         else $$=$1/$3;}
+         |'('exp')'{$$=$2;}
+         |num{$$=$1;};
+    %%
+    int yyerror()
+    {
+    printf("error:invalid expression.\n");
+    exit(0);
+    }
+    int main()
+    {
+    printf("enter an expression:\n");
+    yyparse();
+    }
+    
+
+</pre><h4><b>DESCRIPTION</b></h4><pre>
+       The <b>/etc/network/interfaces</b> file is used to specify how network interfaces are configured.
+       The file is processed by <b><a href="../man8/ifquery.8.html">ifquery</a></b>(8), <b><a href="../man8/ifup.8.html">ifup</a></b>(8) and <b><a href="../man8/ifdown.8.html">ifdown</a></b>(8) to introspect and change system
+       state.
+
+       2.
+lex part:
+
+%option noyywrap
+%{
+#include "y.tab.h"
+%}
+%%
+a {return A;}
+b {return B;}
+[\n] return '\n';
+%%
+
+YACC Part
+%{
+#include<stdio.h>
+#include<stdlib.h>
+int yyerror();
+int yylex();
+%}
+%token A B
+%%
+input:s'\n' {printf("Successful Grammar\n");exit(0);}
+s: A s1 B| B 
+s1: ; | A s1
+%%
+int main()
+{
+printf("Enter A String\n"); 
+yyparse();
+return 0;
+}
+int yyerror()
+{
+printf("Error \n"); 
+exit(0);
+}
+
+</pre><h4><b>FILE</b> <b>SYNTAX</b></h4><pre>
+       The interface configuration database is composed of a series of stanzas.  Hash symbols
+       designate comments, which are ignored by the system.
+
+       A stanza is a collection of triples, where a triple is a key and value combination that is
+       related to an <b>object</b>.  Triples which are not associated with an <b>object</b> are considered to
+       be part of the root of the configuration tree.
+
+       All keywords are case-sensitive and are expected to be lower-case.
+
+       The following is a simple example of a stanza:
+
+           auto eth0
+           iface eth0
+               address 203.0.113.2/24
+               gateway 203.0.113.1
+
+               3.
+   
+               #include<stdio.h>
+               #include<stdlib.h>
+               #include<string.h>
+               char prod[3][10]={"A->aBa","B->bB","B->@"},input[10],stack[25];
+               int top=-1;int j=0,k,l;
+               void push(char item)
+               {
+               stack[++top]=item;
+               }
+               void pop()
+               {
+               top=top-1;
+               }
+               void display()
+               {
+               int j;
+               for(j=top;j>=0;j--)
+               printf("%c",stack[j]);
+               }
+               void stackpush(char p)
+               {
+               if(p=='A')
+               {
+               pop();
+               for(j=strlen(prod[0])-1;j>=3;j--)
+               push(prod[0][j]);
+               }
+               else
+               {
+               pop();
+               for(j=strlen(prod[1])-1;j>=3;j--)
+               push(prod[1][j]);
+               }
+               }
+               void main()
+               {
+               char c; int i;
+               printf("first(A)={a}\t");
+               printf("follow(A)={$}\n");
+               printf("first(B)={b,@}\t");
+               printf("follow(B)={a}\n\n");
+               printf("\t a \t b \t $ \n");
+               printf("A\t%s\n",prod[0]);
+               printf("B\t%s\t%s\n",prod[2],prod[1]);
+               printf("enter the input string terminated with $ to parse:-");
+               scanf("%s",input);
+               for(i=0;input[i]!='\0';i++)
+               {
+               if((input[i]!='a')&&(input[i]!='b')&&(input[i]!='$'))
+               {
+               printf("invalid string");
+               exit(0);
+               }
+               }
+               if(input[i-1]!='$')
+               {
+               printf("\n\nInput string entered without end marker $");
+               exit(0);
+               }
+               push('$');
+               push('A');
+               i=0;
+               printf("\n\n");
+               printf("stack\tinput\taction");
+               printf("\n------------\n");
+               while(i!=strlen(input)&&stack[top]!='$')
+               {
+               printf("\n");
+               for(l=top;l>=0;l--)
+               printf("%c",stack[l]);
+               printf("\t");
+               if(stack[top]=='A')
+               {
+               printf("A->aBa");
+               stackpush('A');
+               }
+               else if(stack[top]=='B')
+               {
+               if(input[i]!='b')
+               {
+               printf("B->@");
+               printf("\t matched @");
+               pop();
+               }
+               else
+               {
+               printf("B->bB");
+               stackpush('B');
+               }
+               }
+               else
+               {
+               if(stack[top]==input[i])
+               {
+               printf("pop%c",input[i]);
+               printf("\t matched %c",input[i]);
+               pop();
+               i++;
+               }
+               else
+               break;
+                }
+                }
+                if(stack[top]=='$' && input[i]=='$')
+                {
+                printf("\n$\t$");
+                printf("\n valid string accepted\n");
+                }
+                else
+                printf("\n invalid string rejected\n");
+               }
+               
+
+</pre><h4><b>SUPPORTED</b> <b>KEYWORDS</b> <b>FOR</b> <b>UNASSOCIATED</b> <b>TRIPLES</b></h4><pre>
+       <b>auto</b> <u>object</u>
+           Designates that <u>object</u> should be automatically configured by the system when
+           appropriate.
+
+       <b>iface</b> <u>object</u>
+           Begins a new declaration for <u>object</u>.  Any child keyword associated with the
+           declaration will be stored inside <u>object</u>.
+
+       <b>source</b> <u>filename</u>
+           Includes the file <u>filename</u> as configuration data.
+
+       <b>source-directory</b> <u>directory</u>
+           Includes the files in <u>directory</u> as configuration data.
+
+           4.
+  
+           #include<stdio.h>
+         #include<string.h>
+         int k=0,z=0,i=0,j=0,c=0;
+         char a[16],ac[20],stk[15],act[10];
+         void check();
+         void main()
+         {
+             printf("Grammar: \n E->E+T|T \n T->T*F|F \n F->(E)|id\n");
+             printf("Enter the input string\n");
+             scanf("%s",a);
+             c=strlen(a);
+             strcpy(act,"SHIFT->");
+             printf("Stack \t Input \t\t Action\n");
+             printf("$\t %s$",a); //Initial contents of the input buffer
+             for(k=0,i=0;j<c;k++,i++,j++)
+             {
+                 if(a[j]=='i' && a[j+1]=='d')
+                 {
+                     stk[i]=a[j];
+                     stk[i+1]=a[j+1];
+                     stk[i+2]='\0';
+                     a[j]=' ';
+                     a[j+1]=' ';
+                     printf("\n$%s\t%s$\t%s id",stk,a,act);
+                     check();
+                 }
+                 else
+                 {
+                     stk[i]=a[j];
+                     stk[i+1]='\0';
+                     a[j]=' ';
+                     printf("\n$%s\t%s$\t%s symbol",stk,a,act);
+                     check();
+                 }
+             }printf("\n");
+             getchar();
+         }
+         
+         void check()
+         {
+             strcpy(ac,"REDUCE");
+             for(z=0;z<c;z++)
+                 if(stk[z]=='(' && stk[z+1]=='E'&& stk[z+2]==')')
+                 {
+                     stk[z]='F';
+                     stk[z+1]='\0';
+                     stk[z+2]='\0';
+                     printf("\n$%s\t%s$\t%s by F->(E)",stk,a,ac);
+                     i=i-2;
+                 }
+             for(z=0;z<c;z++)
+                 if(stk[z]=='i' && stk[z+1]=='d')
+                 {
+                     stk[z]='F';
+                     stk[z+1]='\0';
+                     printf("\n$%s\t%s$\t%s by F->id",stk,a,ac);
+                     j++;
+                 }
+             for(z=0;z<c;z++)
+             {
+                 if(stk[z]=='T' && stk[z+1]=='*' && stk[z+2]=='F')
+                 {
+                     stk[z]='T';
+                     stk[z+1]='\0';
+                     stk[z+2]='\0';
+                     printf("\n$%s\t%s$\t%s by T->T*F",stk,a,ac);
+                     i=i-2;
+                 }
+                 else if(stk[z]=='F')
+                 {
+                     stk[z]='T';
+                     printf("\n$%s\t%s$\t%s by T->F",stk,a,ac);
+                 }
+             }
+             for(z=0;z<c;z++)
+             {
+                 if(stk[z]=='E' && stk[z+1]=='+' && stk[z+2]=='T' && stk[z+3]=='*')
+                     break;
+                 if(stk[z]=='E' && stk[z+1]=='+' && stk[z+2]=='T')
+                     if(a[j+1]=='*')
+                         break;
+                     else
+                     {
+                         stk[z]='E';
+                         stk[z+1]='\0';
+                         stk[z+2]='\0';
+                         printf("\n$%s\t%s$\t%s by E->E+T",stk,a,ac);
+                         i=i-2;
+                     }
+                     else if(stk[z]=='T')
+                     {
+                         if(stk[z+1]=='*' || a[j+1]=='*')
+                                 break;
+                         stk[z]='E';
+                         printf("\n$%s\t%s$\t%s by E->T",stk,a,ac);
+                     }
+                 }
+         }
+</pre><h4><b>SUPPORTED</b> <b>KEYWORDS</b> <b>FOR</b> <b>OBJECT</b> <b>TRIPLES</b></h4><pre>
+       Any keyword may be used inside an interface declaration block, but the system will only
+       respond to certain keywords by default:
+
+       5.
+
+ #include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+char op[2],arg1[5],arg2[5],result[5];
+int count=0;
+void main()
+{
+	FILE *fp1,*fp2;
+	fp1=fopen("input.txt","r");
+	fp2=fopen("output.txt","w");
+	while(!feof(fp1) && count<4)
+	{
+		count ++;
+		fscanf(fp1,"%s%s%s%s",result,arg1,op,arg2);
+		if(strcmp(op,"+")==0)
+		{
+			fprintf(fp2,"\nMOV R0,%s",arg1);
+			fprintf(fp2,"\nADD R0,%s",arg2);
+			fprintf(fp2,"\nMOV %s,R0",result);
+		}
+		if(strcmp(op,"*")==0)
+		{	
+			fprintf(fp2,"\nMOV R0,%s",arg1);
+			fprintf(fp2,"\nMUL R0,%s",arg2);
+			fprintf(fp2,"\nMOV %s,R0",result);
+		}		
+		if(strcmp(op,"-")==0)
+		{
+			fprintf(fp2,"\nMOV R0,%s",arg1);
+			fprintf(fp2,"\nSUB R0,%s",arg2);
+			fprintf(fp2,"\nMOV %s,R0",result);
+		}
+		if(strcmp(op,"/")==0)
+		{
+			fprintf(fp2,"\nMOV R0,%s",arg1);
+			fprintf(fp2,"\nDIV R0,%s",arg2);
+			fprintf(fp2,"\nMOV %s,R0",result);
+		}
+		if(strcmp(op,"=")==0)
+		{
+			fprintf(fp2,"\nMOV R0,%s",arg1);
+			fprintf(fp2,"\nMOV %s,R0",result);
+		}
+	}
+	fclose(fp1);
+	fclose(fp2);
+}
+
+       <b>netmask</b> <u>netmask</u>
+           Associates a fallback netmask with the parent interface for addresses which do not
+           have a CIDR length set.  This option is for backwards compatibility and should not be
+           used in new deployments.
+
+           6a.
+           %{
+           #include<stdio.h>
+           #include<stdlib.h>
+           %}
+           
+           %%
+           "/*"[a-zA-Z0-9' '\t\n]+"*/" {}
+           "//".* {}
+           %%
+           
+           int main()
+           {
+            yyin=fopen("input.c","r");
+            yyout=fopen("out.c","w");
+            yylex();
+            fclose(yyin);
+            fclose(yyout);
+            return 0;
+           }
+           int yywrap()
+           {
+           }
+           
+           6b.
+           lex part:
+           
+           %{
+           #include <stdio.h>
+           #include "y.tab.h"
+           extern yylval;
+           %}
+           %%
+           [ \t] ;
+           [+|-|*|/|=|<|>] {printf("operator is %s\n",yytext);return OP;}
+           [0-9]+ {yylval = atoi(yytext); printf("numbers is %d\n",yylval); return DIGIT;} 
+           int|char|bool|float|void|for|do|while|if|else|return|void {printf("keyword is 
+           %s\n",yytext);return KEY;}
+           [a-zA-Z0-9]+ {printf("identifier is %s\n",yytext);return ID;}
+           . ;
+           %%
+           Yacc File
+            
+           %{
+            #include<stdio.h>
+            #include<stdlib.h>
+            int id=0,dig=0,key=0,op=0;
+           %}
+           %token DIG ID KEY OP
+           
+           %%
+           input:
+            DIG input{dig++;}
+           |ID input{id++;}
+           |KEY input{key++;}
+           |OP input{op++;}
+           |DIG {dig++;}
+           |ID {id++;}
+           |KEY {key++;}
+           |OP {op++;} ;
+           %%
+           
+           extern int yylex();
+           extern int yyparse();
+           extern FILE *yyin;
+           int main()
+           {
+            FILE *fp=fopen("eg.c","r");
+            if(!fp)
+            {
+             printf("File not found\n");
+             return -1;
+            }
+            yyin=fp;
+            do{
+               yyparse();
+            }while(!feof(yyin));
+            printf("Numbers = %d\n Operators = %d\n Identifiers = %d\n Keywords = %d\n",dig,op,id,key);
+           }
+           
+           int yyerror()
+           {
+            printf("Error \n");
+            exit(-1);
+           }
+           int yywrap()
+           { }
+           
+       <b>gateway</b> <u>address</u>
+           Associates an IPv4 or IPv6 address with the parent interface for use as a default
+           route (gateway).  This usually is given once for IPv4 and once for IPv6 (in a Dual-
+           Stack setup).
+
+       <b>link-type</b> <u>link-type</u>
+           Denotes the link-type of the interface. When set to <u>dummy</u>, the interface is created as
+           a virtual dummy interfaces. When set to <u>veth</u> the interface is created as virtual veth
+           interface (pair).
+
+       <b>veth-peer-name</b> <u>peer-name</u>
+           Denotes the name of the veth peer interfaces. If not set the kernel will name the veth
+           peer interface as <u>vethN</u> with N being an integer number.
+
+       <b>alias</b> <u>alias</u>
+           Sets the given alias on the interface.
+
+       <b>requires</b> <u>interfaces</u>...
+           Designates one or more required interfaces that must be brought up before
+           configuration of the parent interface. Interfaces associated with the parent are taken
+           down at the same time as the parent.
+
+       <b>inherit</b> <u>object</u>
+           Designates that the configured interface should inherit configuration data from
+           <u>object</u>.  Normally <u>object</u> must be a <b>template</b>.
+
+       <b>use</b> <u>executor</u>
+           Designates that an executor should be used.  See <u>EXECUTORS</u> section for more
+           information on executors.
+
+       <b>pre-down</b> <u>command</u>
+           Runs <u>command</u> before taking the interface down.
+
+       <b>down</b> <u>command</u>
+           Runs <u>command</u> when the interface is taken down.
+
+       <b>post-down</b> <u>command</u>
+           Runs <u>command</u> after taking the interface down.
+
+       <b>pre-up</b> <u>command</u>
+           Runs <u>command</u> before bringing the interface up.
+
+       <b>up</b> <u>command</u>
+           Runs <u>command</u> when the interface is brought up.
+
+       <b>post-up</b> <u>command</u>
+           Runs <u>command</u> after bringing the interface up.
+
+       Additional packages such as <b>bonding</b>, <b>bridge</b>, <b>tunnel</b>, <b>vrf</b> and <b>vxlan</b> add additional keywords
+       to this vocabulary.
+
+</pre><h4><b>EXECUTORS</b></h4><pre>
+       The <b>use</b> keyword designates that an <u>executor</u> should be used. This system is extendable by
+       additional packages, but the most common executors are:
+
+       <b>batman</b>
+           The interface is a B.A.T.M.A.N. adv. mesh interface. Configuration of B.A.T.M.A.N.
+           adv. interfaces requires the <b>batctl</b> untiliy to be installed.
+
+       <b>bond</b>
+           The interface is a bonded interface.  Configuration of bonded interfaces requires the
+           <b>bonding</b> package to be installed.
+
+           7.
+
+           #include<stdio.h>
+         int main()
+         {
+         int count,j,n,time, flag=0, time_quantum,ch=0;
+         int wait_time=0, turnaround_time=0,at[10], bt [10], rt[10];
+         
+         int endTime, i, smallest;
+         int remain=0, sum_wait=0 ,sum_turnaround=0;
+         printf("1. Round Robin \n2. SRTF \n");
+         scanf("%d", &ch); 
+         printf("Enter no of Processes:" );
+         scanf("%d", &n);
+         for (i=0;i<n;i++)
+         {
+         printf("Enter arrival time for process P%d : ",i+1);
+         scanf("%d", &at[i]); 
+         printf("Enter burst time for Process P%d ",i+1);
+         scanf("%d", &bt[i]);
+         rt[i]=bt[i];
+         }
+         switch(ch)
+         {
+         case 1:
+         printf("Enter Time Quantum:\t"); 
+         scanf("%d", &time_quantum);
+         remain=n;
+         printf("\nProcess time | Turnaround Time | Waiting Time\n");
+         for (time=0;count=0; remain!=0);
+         {
+         if(rt[count] <=time_quantum && rt[count]>0)
+         {
+         time+ rt [count];
+         rt[count]=0; 
+         flag=1;
+         }
+         else if(rt[count]>0)
+         {
+         rt[count]-=time_quantum;
+         time+=time_quantum;
+         }
+         if(rt[count] == 0 && flag==1)
+         {
+         remain--;
+         printf("P[%d]\t\t%d\t | \t%d\n", count+1, time-at[count], time-at [count]-bt [count]);
+         wait_time+=time- at [count]-bt [count];
+         turnaround_time +-time-at [count];
+         flag=0;
+         }
+         if(count =n-1)
+          count=0;
+         
+         else if(at [count+1]<=time)
+          count++;
+         
+         else
+          count=0;
+         }
+         printf("\nAverage Waiting Time %.2f\n",wait_time*1.0/n);
+         printf("Avg Turnaround Time %.2f\n" ,turnaround_time*1.0/n);
+         break;
+         
+         case 2:
+         remain=0;
+         printf("\n Process Time | Turnaround Time] Waiting Time\n");
+         rt[9]=9999;
+         for (time=0; remain!=n; time++)
+         {
+         smallest=9;
+         for (i=0;i<n;i++)
+         if(at[i]<=time && rt[i]<rt[smallest]&& rt[i]>0)
+          smallest=i;
+          rt[smallest]--;
+         if(rt[smallest]==0)
+         {
+             remain++;
+             endTime=time+1;
+             printf("\nP [%d]\t\t%d\t |\t%d", smallest+1,endTime-at[smallest], endTime-bt [smallest]-at[smallest]);
+             printf("\n");
+             sum_wait+ endTime-bt [smallest]-at[smallest];
+             sum_turnaround+=endTime-at[smallest];
+         }
+         }
+             printf("\nAverage waiting time = %f\n", sum_wait *1.0/n);
+             printf("Average Turnaround time = %f\n", sum_turnaround*1.0/n);
+             break;
+             default:
+                 printf("Invalid\n");
+         }
+         return 0;
+         }
+
+       <b>dhcp</b>
+           Use a DHCP client to learn the IPv4 address of an interface.
+
+       <b>forward</b>
+           Configures forwarding settings on the interface.
+
+       <b>loopback</b>
+           Designates the interface as a loopback device.
+
+       <b>ppp</b>
+           Designates the interface as a PPP device.  Configuration of PPP interfaces require the
+           <b>ppp</b> and probably the <b>pppoe</b> packages to be installed.
+
+       <b>tunnel</b>
+           The interface is a tunnel.  Configuration of tunnels requires the <b>tunnel</b> package to be
+           installed on Alpine Linux.
+
+       <b>vrf</b>
+           The interface is a VRF.  Configuration of VRFs requires the <b>vrf</b> package to be
+           installed.
+
+       <b>vxlan</b>
+           The interface is a Virtual Extensible LAN (VXLAN) tunnel endpoint.
+
+       <b>wifi</b>
+           The interface is a Wi-Fi (IEEE 802.11) client interface. Configuration of the WiFi
+           client interface requires the <b>wireless-tools</b> package to be installed. The
+           <b>wpa_supplicant</b> package must also be installed to connect to hotspots using WPA-based
+           security.
+
+       <b>wireguard</b>
+           The interface is a Wireguard VPN tunnel endpoint.
+
+       Check <b>interfaces-&lt;executor&gt;(5)</b> for further informaton about a given executor and available
+       configuration parameters.
+
+       If the <u>auto_executor_selection</u> ifupdown-ng.conf option is enabled, <b>use</b> statements will
+       automatically be added for executors when their configuration statements are present in
+       the interfaces file.
+
+</pre><h4><b>EXAMPLES</b></h4><pre>
+       Configure a bridge interface <b>br0</b> with <b>bond0</b> attached to it, which is a failover between
+       <b>eth0</b> and <b>eth1</b>.  This requires the <b>bonding</b> and <b>bridge</b> packages to be installed:
+       8.
+        <stdio.h>
+        #include <stdlib.h>
+        int main()
+        {
+            int max[10][10],need[10][10],
+            alloc [10][10],av[10],
+            c[10],ss[10];
+            int p,r,i,j,process,count;
+            count=0;
+            printf("Enter the no of process:");
+            scanf("%d",&p);
+            for(i=0;i<p;i++)
+            c[i]=0;
+            printf("\n\n Enter the no of resouces:");
+            scanf("%d",&r);
+            printf("\n\n Enter the Max matrix for each process:");
+            for(i=0;i<p;i++)
+        {
+            printf("\n For process %d:",i+1);
+            for(j=0;j<r;j++)
+            scanf("%d",&max[i][j]);
+        }
+            printf("\n\n Enter the allocation for each process:");
+            for(i=0;i<p;i++)
+            {
+                printf("\nFor process %d :",i + 1);
+                for(j=0;j<r;j++)
+                scanf("%d",& alloc [i][j]);
+            }
+                printf("\n\n Enter the available resources:");
+                for(i=0;i<r;i++)
+                scanf("%d",&av[i]);
+                for(i=0;i<p;i++)
+                for(j=0;j<r;j++)
+                need[i][j]=max[i][j]-alloc[i][j];
+                do
+        {
+            printf("\n Max matrix :\t allocation matrix:\n");
+            for(i=0;i<p;i++)
+            {
+                for(j=0;j<r;j++)
+                printf("%d",max[i][j]);
+                printf("\t\t");
+                for(j=0;j<r;j++)
+                printf("%d",alloc[i][j]);
+                printf("\n");
+            }
+               process=-1;
+               for(i=0;i<p;i++)
+               {
+                   if(c[i]==0) // If nott completed
+        {
+            process=i;
+            for(j=0;j<r;j++)
+            {
+                if (av[j]<need[i][j])
+               {
+                   process=-1;
+                   break;
+               }
+            }
+        }
+                 if(process!=-1)
+                 break;
+               }
+               if(process!=-1)
+               {
+                   printf("\n process%d runs to completion!",process+1);
+                   ss[count]=process+1;
+                   count++;
+                   for(j=0;j<r;j++)
+                   {
+                       av[j]+=alloc[process][j];
+                       alloc[process][j]=0;
+                       max[process][j]=0;
+                       c[process]=1;
+                   }
+               }
+        }
+                    while(count!=p&&process!=-1);
+                    if (count==p)
+                    {
+                        printf("\n The system is in a safe state !!\n");
+                        printf("safe sequence:<");
+                        for(i=0;i<p;i++)
+                        printf("%d",ss[i]);
+                        printf(">\n");
+                    }
+                    else
+                        printf("\n The system is in an unsafe state!!");
+        }
+        
+           auto br0
+           iface br0
+               use bridge
+               requires bond0
+               address 203.0.113.2/24
+               gateway 203.0.113.1
+
+           iface bond0
+               use bond
+               requires eth0 eth1
+               bond-mode 802.3ad
+               bond-xmit-hash-policy layer2+3
+
+       Configure a network interface to use DHCP to learn its IPv4 address:
+
+           auto eth0
+           iface eth0
+               use dhcp
+
+9.
+#include<stdio.h>
+#include<stdlib.h>
+void FIFO(char [ ],char [ ],int,int);
+void lru(char [ ],char [ ],int,int);
+void opt(char [ ],char [ ],int,int);
+int main()
+{
+int ch,YN=1,i,l,f;
+char F[10],s[25];
+printf("\n\n\tEnter the no of empty frames: "); 
+scanf("%d",&f);
+printf("\n\n\tEnter the length of the string: ");
+scanf("%d",&l);
+printf("\n\n\tEnter the string: ");
+scanf("%s",s);
+for(i=0;i<f;i++)
+F[i]=-1;
+do
+{
+printf("\n\n\t*********** MENU ***********");
+printf("\n\n\t1:FIFO\n\n\t2:LRU \n\n\t4:EXIT");
+printf("\n\n\tEnter your choice: "); 
+scanf("%d",&ch);
+switch(ch)
+{
+case 1:
+for(i=0;i<f;i++)
+{
+F[i]=-1;
+}
+FIFO(s,F,l,f);
+break;
+case 2:
+for(i=0;i<f;i++)
+{
+F[i]=-1;
+}
+lru(s,F,l,f);
+break;
+case 4:
+exit(0);
+}
+printf("\n\n\tDo u want to continue IF YES PRESS 1\n\n\tIF NO PRESS 0 :"); 
+scanf("%d",&YN);
+}
+while(YN==1);return(0);
+}
+//FIFO
+void FIFO(char s[],char F[],int l,int f) {
+int i,j=0,k,flag=0,cnt=0;
+printf("\n
+\tPAGE\t FRAMES\t FAULTS");
+for(i=0;i<l;i++) {
+for(k=0;k<f;k++)
+{
+if(F[k]==s[i])
+flag=1;
+}
+if(flag==0)
+{
+printf("
+\n
+\t%c
+\t",s[i]);
+F[j]=s[i];
+j++;
+for(k=0;k<f;k++) {
+printf(" %c",F[k]); }
+printf("\tPage-fault%d",cnt);
+cnt++;
+}
+else
+{
+flag=0;
+printf("\n\t%c\t",s[i]);
+for(k=0;k<f;k++) {
+printf(" %c",F[k]); }
+printf("\tNo page-fault");
+}
+if(j==f)
+j=0; }
+}
+//LRU
+void lru(char s[],char F[],int l,int f) {
+int i,j=0,k,m,flag=0,cnt=0,top=0;
+printf("\n\tPAGE\t FRAMES\t FAULTS"); 
+for(i=0;i<l;i++) {
+for(k=0;k<f;k++)
+{
+if(F[k]==s[i]) {
+flag=1;
+break;
+}
+}
+printf("\n\t%c\t",s[i]);
+if(j!=f && flag!=1)
+{
+F[top]=s[i];
+j++;
+if(j!=f)
+top++;
+}
+else
+{
+if(flag!=1) {
+for(k=0;k<top;k++) {
+F[k]=F[k+1]; }
+F[top]=s[i];
+}
+if(flag==1) {
+for(m=k;m<top;m++) {
+F[m]=F[m+1]; }
+F[top]=s[i];
+}
+}
+for(k=0;k<f;k++)
+{
+printf(" %c",F[k]); }
+if(flag==0)
+{
+printf("\tPage-fault%d",cnt);
+cnt++;
+}
+else
+printf("\tNo page fault");
+flag=0;
+}
+}
+
+</pre><h4><b>SEE</b> <b>ALSO</b></h4><pre>
+       <b><a href="../man5/ifstate.5.html">ifstate</a></b>(5) <b><a href="../man5/ifupdown-ng.conf.5.html">ifupdown-ng.conf</a></b>(5) <b><a href="../man8/ifup.8.html">ifup</a></b>(8) <b><a href="../man8/ifdown.8.html">ifdown</a></b>(8) <b><a href="../man8/ifquery.8.html">ifquery</a></b>(8) <b><a href="../man8/ifctrstat.8.html">ifctrstat</a></b>(8) <b><a href="../man5/interfacesbatman.5.html">interfaces-</a></b>
+       <b><a href="../man5/interfacesbatman.5.html">batman</a></b>(5) <b><a href="../man5/interfaces-bond.5.html">interfaces-bond</a></b>(5) <b><a href="../man5/interfaces-bridge.5.html">interfaces-bridge</a></b>(5) <b><a href="../man5/interfaces-forward.5.html">interfaces-forward</a></b>(5) <b><a href="../man5/interfaces-mpls.5.html">interfaces-mpls</a></b>(5)
+       <b><a href="../man5/interfaces-ppp.5.html">interfaces-ppp</a></b>(5) <b><a href="../man5/interfaces-tunnel.5.html">interfaces-tunnel</a></b>(5) <b><a href="../man5/interfaces-vrf.5.html">interfaces-vrf</a></b>(5) <b><a href="../man5/interfaces-vxlan.5.html">interfaces-vxlan</a></b>(5) <b><a href="../man5/interfaceswifi.5.html">interfaces-</a></b>
+       <b><a href="../man5/interfaceswifi.5.html">wifi</a></b>(5) <b><a href="../man5/interfaces-wireguard.5.html">interfaces-wireguard</a></b>(5)
+
+</pre><h4><b>AUTHORS</b></h4><pre>
+       Ariadne Conill &lt;<a href="mailto:ariadne@dereferenced.org">ariadne@dereferenced.org</a>&gt;
+       Maximilian Wilhelm &lt;<a href="mailto:max@sdn.clinic">max@sdn.clinic</a>&gt;
+
+                                            2022-02-16                              <a href="../man5/interfaces.5.html">interfaces</a>(5)
+</pre>
+</pre>
+        </div>
+      </section>
+    </div>
+    <footer class="p-strip is-shallow">
+      <div class="row">
+        <p>Powered by the <a href="https://launchpad.net/ubuntu-manpage-repository">Ubuntu Manpage Repository</a>, file bugs in <a href="https://bugs.launchpad.net/ubuntu-manpage-repository/+filebug">Launchpad</a></p>
+        <p>&copy; 2019 Canonical Ltd. Ubuntu and Canonical are registered trademarks of Canonical Ltd.</p>
+      </div>
+    </footer>
+    <script src="/functions.js"></script>
+  </body>
+</html>
+
